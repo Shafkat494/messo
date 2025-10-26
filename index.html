@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hostel Mess Management System</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header Section -->
+        <header class="header">
+            <div class="logo">
+                <h1>🍽 Hostel Mess Management System</h1>
+            </div>
+            <p class="tagline">Efficient Mess Management for Students and Administrators</p>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Admin Login Section -->
+            <section class="login-card admin-card">
+                <div class="card-header">
+                    <h2>👨‍💼 Admin / Manager Login</h2>
+                    <div class="icon">⚙</div>
+                </div>
+                <form class="login-form" id="adminLoginForm">
+                    <div class="form-group">
+                        <label for="adminUsername">Username</label>
+                        <input type="text" id="adminUsername" placeholder="Enter admin username" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="adminPassword">Password</label>
+                        <input type="password" id="adminPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="login-btn admin-btn">
+                        <span class="btn-text">Login as Admin</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+                <div class="card-footer">
+                    <!-- <p>Default: admin / admin123</p> -->
+                </div>
+            </section>
+
+            <!-- Student Login Section -->
+            <section class="login-card student-card">
+                <div class="card-header">
+                    <h2>🎓 Student Login</h2>
+                    <div class="icon">📚</div>
+                </div>
+                <form class="login-form" id="studentLoginForm">
+                    <div class="form-group">
+                        <label for="studentUsername">Student ID</label>
+                        <input type="text" id="studentUsername" placeholder="Enter student ID" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="studentPassword">Password</label>
+                        <input type="password" id="studentPassword" placeholder="Enter your password" required>
+                    </div>
+                    <button type="submit" class="login-btn student-btn">
+                        <span class="btn-text">Login as Student</span>
+                        <span class="btn-icon">→</span>
+                    </button>
+                </form>
+                <div class="card-footer">
+                <!--   <p>Try: STU001 / student123</p> -->
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <p>&copy; 2024 Hostel Mess Management System. All rights reserved.</p>
+                <p class="copyright">Designed and Developed by Irsha | Version 2.0</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Loading Animation -->
+    <div class="loading-overlay" id="loadingOverlay">
+        <div class="loading-spinner">
+            <div class="spinner"></div>
+            <p>Processing your request...</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

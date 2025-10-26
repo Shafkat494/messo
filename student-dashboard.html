@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Student Dashboard - Hostel Mess Management</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Dashboard Header -->
+        <header class="dashboard-header">
+            <div>
+                <h1 class="dashboard-title">🎓 Student Dashboard</h1>
+                <p id="studentWelcome">Welcome to Mess Portal!</p>
+            </div>
+            <div class="user-info">
+                <p id="currentDate"></p>
+                <button class="logout-btn" onclick="logout()">Logout</button>
+            </div>
+        </header>
+
+        <!-- Today's Menu Section -->
+        <section class="dashboard-card">
+            <h3 class="card-title">📋 Today's Mess Menu</h3>
+            <div id="todayMenu">
+                <!-- Menu will be populated by JavaScript -->
+            </div>
+        </section>
+
+        <!-- Attendance Section -->
+        <section class="dashboard-grid">
+            <div class="dashboard-card">
+                <h3 class="card-title">✅ Mark Attendance</h3>
+                <div id="attendanceButtons"></div>
+            </div>
+
+            <div class="dashboard-card">
+                <h3 class="card-title">📊 My Attendance Summary</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-number" id="todayMeals">0</div>
+                        <div class="stat-label">Meals Today</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-number" id="totalMeals">0</div>
+                        <div class="stat-label">Total This Week</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- My Information Section -->
+        <section class="dashboard-card">
+            <h3 class="card-title">👤 My Information</h3>
+            <div id="studentInfo"></div>
+        </section>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const currentStudent = JSON.parse(localStorage.getItem('currentStudent'));
+            if (!currentStudent) {
+                window.location.href = 'index.html';
+                return;
+            }
+
+            // ✅ Fixed template literal
+            document.getElementById('studentWelcome').textContent = `Welcome, ${currentStudent.name}!`;
+
+            // Display current date
+            document.getElementById('currentDate').textContent = new Date().toLocaleDateString('en-US', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
+            // Display student information
+            document.getElementById('studentInfo').innerHTML = `
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+                    <div><strong>Student ID:</strong> ${currentStudent.id}</div>
+                    <div><strong>Room No:</strong> ${currentStudent.room}</div>
+                    <div><strong>Name:</strong> ${currentStudent.name}</div>
+                </div>
+            `;
+
+            loadTodayMenu();
+            loadAttendanceButtons();
+            loadAttendanceSummary();
+        });
+
+        function loadTodayMenu() {
+            const menu = db.getTodayMenu();
+            if (!menu) {
+                document.getElementById('todayMenu').innerHTML = `<p style="color:#777;">Menu not available for today.</p>`;
+                return;
+            }
+
+            document.getElementById('todayMenu').innerHTML = `
+                <div class="menu-item"><strong>🍳 Breakfast:</strong> ${menu.breakfast || 'N/A'}</div>
+                <div class="menu-item"><strong>🍽 Lunch:</strong> ${menu.lunch || 'N/A'}</div>
+                <div class="menu-item"><strong>🌙 Dinner:</strong> ${menu.dinner || 'N/A'}</div>
+            `;
+        }
+
+        function loadAttendanceButtons() {
+            const currentStudent = JSON.parse(localStorage.getItem('currentStudent'));
+            const today = new Date().toISOString().split('T')[0];
+            const studentAttendance = db.getStudentAttendance(currentStudent.id) || {};
+            const todayAttendance = studentAttendance[today] || [];
+
+            const mealTypes = [
+                { type: 'breakfast', label: '🍳 Breakfast', time: '7:00 - 9:00 AM' },
+                { type: 'lunch', label: '🍽 Lunch', time: '12:00 - 2:00 PM' },
+                { type: 'dinner', label: '🌙 Dinner', time: '7:00 - 9:00 PM' }
+            ];
+
+            const currentHour = new Date().getHours();
+
+            document.getElementById('attendanceButtons').innerHTML = mealTypes.map(meal => {
+                const isMarked = todayAttendance.includes(meal.type);
+                let isAvailable = true;
+
+                // Time window logic
+                if (meal.type === 'breakfast' && (currentHour < 7 || currentHour >= 9)) isAvailable = false;
+                if (meal.type === 'lunch' && (currentHour < 12 || currentHour >= 14)) isAvailable = false;
+                if (meal.type === 'dinner' && (currentHour < 19 || currentHour >= 21)) isAvailable = false;
+
+                return `
+                    <div class="menu-item">
+                        <div>
+                            <strong>${meal.label}</strong>
+                            <div style="font-size: 0.9rem; color: #666;">Time: ${meal.time}</div>
+                        </div>
+                        <button 
+                            class="attendance-btn ${isMarked ? 'marked' : ''}" 
+                            onclick="markAttendance('${meal.type}')"
+                            ${isMarked || !isAvailable ? 'disabled' : ''}
+                        >
+                            ${isMarked ? 'Marked ✅' : (isAvailable ? 'Mark Attendance' : 'Not Available')}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function markAttendance(mealType) {
+            const currentStudent = JSON.parse(localStorage.getItem('currentStudent'));
+            const today = new Date().toISOString().split('T')[0];
+            
+            db.markAttendance(currentStudent.id, today, mealType);
+            showNotification(`${mealType.charAt(0).toUpperCase() + mealType.slice(1)} attendance marked!`, 'success');
+            
+            loadAttendanceButtons();
+            loadAttendanceSummary();
+        }
+
+        function loadAttendanceSummary() {
+            const currentStudent = JSON.parse(localStorage.getItem('currentStudent'));
+            const studentAttendance = db.getStudentAttendance(currentStudent.id) || {};
+            const today = new Date().toISOString().split('T')[0];
+            
+            const todayMeals = studentAttendance[today]?.length || 0;
+            document.getElementById('todayMeals').textContent = todayMeals;
+            
+            const oneWeekAgo = new Date();
+            oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
+            
+            let weeklyTotal = 0;
+            Object.keys(studentAttendance).forEach(date => {
+                if (new Date(date) >= oneWeekAgo) {
+                    weeklyTotal += studentAttendance[date]?.length || 0;
+                }
+            });
+            
+            document.getElementById('totalMeals').textContent = weeklyTotal;
+        }
+
+        function logout() {
+            localStorage.removeItem('currentStudent');
+            window.location.href = 'index.html';
+        }
+    </script>
+</body>
+</html>
